@@ -29,7 +29,7 @@ diff_t = diff(t); % Compute time differences
 delta  = [diff_t(1); diff_t]; clear diff_t % Ensure delta has the same size
 
 % Initialize SOC using the first current sample
-soc(1) = soc0 + I(1)*(delta(1))/Q;
+soc(1) = soc0 + I(1)*(delta(1))/(Q*3600);
 
 for k = 2:length(I)
 
