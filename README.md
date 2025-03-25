@@ -2,12 +2,19 @@
 
 This MATLAB function `battSIM` simulates the electrical behavior of a battery using an equivalent circuit model. It calculates the battery's state of charge (SOC), open-circuit voltage (OCV), transient currents, and terminal voltage based on a given current profile.
 
+## Define load current (depending on usage)
+```matlab
+dt = 1;      % Time step in seconds
+Tmax = 10;   % Maximum time in seconds
+t  = (dt:dt:Tmax)';   % Time stamps from dt to Tmax
+I  = 1*ones(size(t));  % Load current (constant 1 A for the simulation)
+```
+
 ## Define battery parameters for the simulation
 ```matlab
 
 % State-of-Charge (SOC) vs Open-Circuit Voltage (OCV) lookup table
-% Each row represents a (SOC, OCV) pair
-Batt.SOC_OCV_LUT = [
+Batt.SOC_OCV_LUT = [  % Each row represents a (SOC, OCV) pair
     0.0000    2.5000  % Fully discharged
     0.0050    2.8080
     0.0352    3.1179
@@ -38,4 +45,16 @@ Batt.C2 = 0;      % Capacitance in second RC network (Farads)
 Batt.ModelID = '1RC';  % Using a single RC circuit model
 
 % Run simulator
-[vbatt, ibatt, soc, ocv, delta, i1] = battSIM(I, t, Batt);
+[vbatt, ibatt, soc, ocv] = battSIM(I, t, Batt);
+
+```
+
+## References
+If you would like to learn more about battery modeling and battery management system design, refer to:
+
+@book{balasingam2023robust,  
+  title={Robust Battery Management System Design With MATLAB},  
+  author={Balasingam, Balakumar},  
+  year={2023},  
+  publisher={Artech House}  
+}
