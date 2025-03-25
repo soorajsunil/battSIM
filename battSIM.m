@@ -34,7 +34,7 @@ soc(1) = soc0 + I(1)*(delta(1))/(Q*3600);
 for k = 2:length(I)
 
     % Trapezoidal integration for SOC estimation
-    soc(k) = soc(k-1) + (I(k) + I(k-1)) * delta(k-1) / (2*Q*3600);
+    soc(k) = soc(k-1) + (I(k) + I(k-1)) * delta(k) / (2*Q*3600);
     
     % Limit SOC to valid range [0,1]
     if soc(k)>=1
