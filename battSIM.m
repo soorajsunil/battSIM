@@ -23,7 +23,6 @@ h       = 0; % Hysteresis voltage component
 ModelID = Batt.ModelID; % Battery model identifier
 
 %% Coulomb counting to estimate SOC
-
 soc    = nan(size(I)); % Initialize SOC array
 diff_t = diff(t); % Compute time differences
 delta  = [diff_t(1); diff_t]; clear diff_t % Ensure delta has the same size
@@ -50,8 +49,6 @@ end
 %% Determination of OCV via SOC-OCV lookup
 ocv = interp1(SOC_OCV_LUT(:,1),SOC_OCV_LUT(:,2),soc);
 
-%% Determining current through R1 and R2
-
 % Compute decay coefficients for first and second RC circuits
 alpha1 = exp(-(delta/(R1*C1)));
 alpha2 = exp(-(delta/(R2*C2)));
@@ -60,16 +57,15 @@ alpha2 = exp(-(delta/(R2*C2)));
 i1  = nan(size(I));
 i2  = nan(size(I));
 
-% Compute initial transient currents
+% Initial transient currents for first and second RC circuits
 i1(1) = (1-alpha1(1))*I(1);
 i2(1) = (1-alpha2(2))*I(1);
 
+% Compute transient currents for first and second RC circuits
 for k = 2:length(I)
     i1(k) = alpha1(k)*i1(k-1) + (1-alpha1(k))*I(k);
     i2(k) = alpha1(k)*i2(k-1) + (1-alpha1(k))*I(k);
 end
-
-%% Determination of Voltage drop and the Battery Terminal Voltage
 
 % Compute terminal voltage drop based on the selected battery model
 switch ModelID
