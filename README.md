@@ -48,11 +48,16 @@ Batt.C2 = 0;      % Capacitance in second RC network (Farads)
 % Model type used for the battery simulation
 % Options: 'Rint', '1RC', '2RC'
 Batt.ModelID = '1RC';  % Using a single RC circuit model
-
-% Run simulator
-[vbatt, ibatt, soc, ocv] = battSIM(I, t, Batt);
-
 ```
+
+## Run simulator
+```matlab
+[vbatt, ibatt, soc, ocv] = battSIM(I, t, Batt);
+```
+
+
+
+
 
 ## References
 If you would like to learn more about battery modeling and battery management system design, refer to:
