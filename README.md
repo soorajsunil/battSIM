@@ -55,6 +55,13 @@ Batt.ModelID = '1RC';  % Using a single RC circuit model
 [vbatt, ibatt, soc, ocv] = battSIM(I, t, Batt);
 ```
 
+## Run simulator (with noise)
+```matlab
+sigma_v = 1e-3; % voltage measurement noise standard deviation 
+sigma_i = 1e-6; % current measurement noise standard deviation 
+[vbatt, ibatt, soc, ocv] = battSIM(I, t, Batt, sigma_i, sigma_v);
+```
+
 
 
 
