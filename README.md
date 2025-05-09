@@ -62,10 +62,6 @@ sigma_i = 1e-6; % current measurement noise standard deviation
 [vbatt, ibatt, soc, ocv] = battSIM(I, t, Batt, sigma_i, sigma_v);
 ```
 
-
-
-
-
 ## References
 If you would like to learn more about battery modeling and battery management system design, refer to:
 
