@@ -75,3 +75,6 @@ If you would like to learn more about battery modeling and battery management sy
   year={2023},  
   publisher={Artech House}  
 }
+
+For more details on SOC-OCV lookup table: 
+https://github.com/soorajsunil/Piecewise-Battery-OCV
