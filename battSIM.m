@@ -1,4 +1,4 @@
-function [vbatt, ibatt, soc, ocv, delta, i1, i2, i3] = battSIM(I, t, Batt, sigma_i, sigma_v)
+function [vbatt, ibatt, soc, ocv, i1, i2, i3] = battSIM(I, t, Batt, sigma_i, sigma_v)
 
 % If only three arguments are provided, set noise values to zero
 if nargin==3;sigma_i=0; sigma_v=0; end
@@ -8,21 +8,19 @@ I = I(:);
 t = t(:);
 
 % Extract battery parameters from the input structure
-Q    = Batt.Q;    % Battery capacity (Ah)
-soc0 = Batt.soc0; % Initial state of charge (SOC)
-
-R0 = Batt.R0; % Internal resistance of the battery (Ohm)
-R1 = Batt.R1; % First RC circuit resistance (Ohm)
-C1 = Batt.C1; % First RC circuit capacitance (Farad)
-R2 = Batt.R2; % Second RC circuit resistance (Ohm)
-C2 = Batt.C2; % Second RC circuit capacitance (Farad)
-R3 = Batt.R3; % Third RC circuit resistance (Ohm)
-C3 = Batt.C3; % Third RC circuit capacitance (Farad)
-
+soc0        = Batt.soc0; % Initial state of charge (SOC)
+Q           = Batt.Q;    % Battery capacity (Ah)
+R0          = Batt.R0;   % Battery internal resistance (ohm)
+ModelID     = Batt.ModelID; % Battery model identifier {'R0','1RC','2RC','3RC'}
 SOC_OCV_LUT = Batt.SOC_OCV_LUT; % 2-D Lookup table for SOC vs OCV
 
-h       = 0; % Hysteresis voltage component
-ModelID = Batt.ModelID; % Battery model identifier
+% Extract circuit model parameters
+if isfield(Batt,'R1'); R1 = Batt.R1; else; R1 = NaN; end
+if isfield(Batt,'C1'); C1 = Batt.C1; else; C1 = NaN; end
+if isfield(Batt,'R2'); R2 = Batt.R2; else; R2 = NaN; end
+if isfield(Batt,'C2'); C2 = Batt.C2; else; C2 = NaN; end
+if isfield(Batt,'R3'); R3 = Batt.R3; else; R3 = NaN; end
+if isfield(Batt,'C3'); C3 = Batt.C3; else; C3 = NaN; end
 
 %% Coulomb counting SOC
 soc    = nan(size(I)); % Initialize SOC array
@@ -38,17 +36,12 @@ for k = 2:length(I)
     soc(k) = soc(k-1) + (I(k) + I(k-1)) * delta(k) / (2*Q*3600);
 
     % Limit SOC to valid range [0,1]
-    if soc(k)>=1
-        soc(k)=1;
-    elseif soc(k)<=0
-        soc(k)=0;
-    else
-        continue;
-    end
+     soc(k) = min(max(soc(k), 0), 1);  % Clamp between 0 and 1
+
 end
 
 %% Determination of OCV via SOC-OCV lookup
-ocv = interp1(SOC_OCV_LUT(:,1),SOC_OCV_LUT(:,2),soc);
+ocv = interp1(SOC_OCV_LUT(:,1),SOC_OCV_LUT(:,2),soc,'linear','extrap');
 
 %% Compute decay coefficients for the RC circuits
 alpha1 = exp(-(delta/(R1*C1)));
@@ -71,13 +64,13 @@ end
 %% Compute terminal voltage drop based on the selected battery model
 switch ModelID
     case {'Rint','R0'}
-        vdrop= I*R0 + h;
+        vdrop= I*R0;
     case '1RC'
-        vdrop= I*R0 + i1*R1 + h;
+        vdrop= I*R0 + i1*R1;
     case '2RC'
-        vdrop= I*R0 + i1*R1 + i2*R2 + h;
+        vdrop= I*R0 + i1*R1 + i2*R2;
     case '3RC'
-        vdrop= I*R0 + i1*R1 + i2*R2 + i3*R3 + h;
+        vdrop= I*R0 + i1*R1 + i2*R2 + i3*R3;
     otherwise
         error('invalid ModelID')
 end
