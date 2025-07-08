@@ -9,18 +9,23 @@ This MATLAB function `battSIM` simulates the electrical behavior of a battery us
 
 ## Define load current (depending on usage)
 ```matlab
-dt = 1;      % Time step in seconds
-Tmax = 10;   % Maximum time in seconds
-t  = (dt:dt:Tmax)';   % Time stamps from dt to Tmax
-I  = 1*ones(size(t));  % Load current (constant 1 A for the simulation)
+dt    = 0.1;               % Time step (s)
+Tmax  = 10;                % Maximum simulation time (s)
+t     = (dt:dt:Tmax)';     % Time vector
+I     = ones(size(t));     % Constant load current (1 A)
 ```
 
 ## Define battery parameters for the simulation
 ```matlab
 
-% State-of-Charge (SOC) vs Open-Circuit Voltage (OCV) lookup table
-Batt.SOC_OCV_LUT = [  % Each row represents a (SOC, OCV) pair
-    0.0000    2.5000  % Fully discharged
+% Battery parameters
+Batt.soc0 = 0.5;    % Initial SOC (0 to 1)
+Batt.Q    = 4;      % Capacity (Ah)
+Batt.R0   = 0.02;   % Internal resistance (Ohms)
+
+% SOC-OCV lookup table
+Batt.SOC_OCV_LUT = [  
+    0.0000    2.5000  
     0.0050    2.8080
     0.0352    3.1179
     0.0854    3.3182
@@ -29,25 +34,14 @@ Batt.SOC_OCV_LUT = [  % Each row represents a (SOC, OCV) pair
     0.4523    3.6941
     0.8392    4.0664
     0.9548    4.1121
-    1.0000    4.2000  % Fully charged
+    1.0000    4.2000  
 ];
 
-Batt.soc0 = 0.5;  % % Initial SOC at the start of the simulation (0 to 1)
-
-Batt.Q = 4;     % Battery capacity in ampere-hours (Ah)
-Batt.R0 = 0.02; % Internal resistance of the battery (Ohms)
-
-% First RC circuit parameters
-Batt.R1 = 0.01;   % Resistance in first RC network (Ohms)
-Batt.C1 = 100;    % Capacitance in first RC network (Farads)
-
-% Second RC circuit parameters (not used in 1RC model)
-Batt.R2 = 0;      % Resistance in second RC network (Ohms)
-Batt.C2 = 0;      % Capacitance in second RC network (Farads)
-
-% Model type used for the battery simulation
-% Options: 'Rint', '1RC', '2RC'
-Batt.ModelID = '1RC';  % Using a single RC circuit model
+% RC circuit parameters
+Batt.ModelID = '3RC';  % Model type: 'R0', '1RC', '2RC', '3RC'
+Batt.R1 = 0.01; Batt.C1 = 100;
+Batt.R2 = 0.02; Batt.C2 = 100;
+Batt.R3 = 0.02; Batt.C3 = 100;
 ```
 
 ## Run simulator
