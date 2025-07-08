@@ -1,4 +1,4 @@
-function [vbatt, ibatt, soc, ocv, delta, i1, i2] = battSIM(I, t, Batt, sigma_i, sigma_v)
+function [vbatt, ibatt, soc, ocv, delta, i1, i2, i3] = battSIM(I, t, Batt, sigma_i, sigma_v)
 
 % If only three arguments are provided, set noise values to zero
 if nargin==3;sigma_i=0; sigma_v=0; end
@@ -8,7 +8,7 @@ I = I(:);
 t = t(:);
 
 % Extract battery parameters from the input structure
-Q    = Batt.Q; % Battery capacity (Ah)
+Q    = Batt.Q;    % Battery capacity (Ah)
 soc0 = Batt.soc0; % Initial state of charge (SOC)
 
 R0 = Batt.R0; % Internal resistance of the battery (Ohm)
@@ -16,13 +16,15 @@ R1 = Batt.R1; % First RC circuit resistance (Ohm)
 C1 = Batt.C1; % First RC circuit capacitance (Farad)
 R2 = Batt.R2; % Second RC circuit resistance (Ohm)
 C2 = Batt.C2; % Second RC circuit capacitance (Farad)
+R3 = Batt.R3; % Third RC circuit resistance (Ohm)
+C3 = Batt.C3; % Third RC circuit capacitance (Farad)
 
 SOC_OCV_LUT = Batt.SOC_OCV_LUT; % 2-D Lookup table for SOC vs OCV
- 
+
 h       = 0; % Hysteresis voltage component
 ModelID = Batt.ModelID; % Battery model identifier
 
-%% Coulomb counting to estimate SOC
+%% Coulomb counting SOC
 soc    = nan(size(I)); % Initialize SOC array
 diff_t = diff(t); % Compute time differences
 delta  = [diff_t(1); diff_t]; clear diff_t % Ensure delta has the same size
@@ -34,7 +36,7 @@ for k = 2:length(I)
 
     % Trapezoidal integration for SOC estimation
     soc(k) = soc(k-1) + (I(k) + I(k-1)) * delta(k) / (2*Q*3600);
-    
+
     % Limit SOC to valid range [0,1]
     if soc(k)>=1
         soc(k)=1;
@@ -43,31 +45,30 @@ for k = 2:length(I)
     else
         continue;
     end
-
 end
 
 %% Determination of OCV via SOC-OCV lookup
 ocv = interp1(SOC_OCV_LUT(:,1),SOC_OCV_LUT(:,2),soc);
 
-% Compute decay coefficients for first and second RC circuits
+%% Compute decay coefficients for the RC circuits
 alpha1 = exp(-(delta/(R1*C1)));
 alpha2 = exp(-(delta/(R2*C2)));
+alpha3 = exp(-(delta/(R3*C3)));
 
-% Initialize arrays for transient currents through R1 and R2
-i1  = nan(size(I));
-i2  = nan(size(I));
-
-% Initial transient currents for first and second RC circuits
+% Compute transient currents for the RC circuits
+i1 = nan(size(I));
+i2 = nan(size(I));
+i3 = nan(size(I));
 i1(1) = (1-alpha1(1))*I(1);
-i2(1) = (1-alpha2(2))*I(1);
-
-% Compute transient currents for first and second RC circuits
+i2(1) = (1-alpha2(1))*I(1);
+i3(1) = (1-alpha3(1))*I(1);
 for k = 2:length(I)
     i1(k) = alpha1(k)*i1(k-1) + (1-alpha1(k))*I(k);
-    i2(k) = alpha1(k)*i2(k-1) + (1-alpha1(k))*I(k);
+    i2(k) = alpha2(k)*i2(k-1) + (1-alpha2(k))*I(k);
+    i3(k) = alpha3(k)*i3(k-1) + (1-alpha3(k))*I(k);
 end
 
-% Compute terminal voltage drop based on the selected battery model
+%% Compute terminal voltage drop based on the selected battery model
 switch ModelID
     case {'Rint','R0'}
         vdrop= I*R0 + h;
@@ -75,11 +76,13 @@ switch ModelID
         vdrop= I*R0 + i1*R1 + h;
     case '2RC'
         vdrop= I*R0 + i1*R1 + i2*R2 + h;
+    case '3RC'
+        vdrop= I*R0 + i1*R1 + i2*R2 + i3*R3 + h;
     otherwise
         error('invalid ModelID')
 end
 
-% Compute battery terminal voltage and current with added noise
+%% Compute battery terminal voltage and current with added noise
 vbatt = ocv + vdrop + sigma_v*randn(size(vdrop));  % Battery noisy terminal voltage
 ibatt = I + sigma_i*randn(size(I));                % Battery noisy current
 
