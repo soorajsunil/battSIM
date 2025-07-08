@@ -1,12 +1,11 @@
-# Battery Simulator 
+# Battery Simulator - ``` battSIM ```
 
-This MATLAB function `battSIM` simulates the electrical behavior of a battery using an equivalent circuit model. It calculates the battery's state of charge (SOC), open-circuit voltage (OCV), transient currents, and terminal voltage based on a given current profile. The `battSIM` function includes: 
+The MATLAB function ```battSIM``` simulates the electrical behavior of a battery using an equivalent circuit model. It computes:
 - **State-of-charge estimation** using Coulomb counting.
-- **Open-circuit voltage determination** from a given SOC-OCV lookup table.
-- **Transient current calculations** based on first and second-order RC circuits.
-- **Flexible battery models**, including options for internal resistance (`Rint`), single RC circuit (`1RC`), and double RC circuit (`2RC`).
+- **Open-circuit voltage lookup** from a given SOC-OCV table.
+- **RC transient current calculations** based on first, second, or third-order RC circuits.
 - **Noise simulation** for both battery current and voltage.
-
+  
 ## Define load current (depending on usage)
 ```matlab
 dt    = 0.1;               % Time step (s)
@@ -39,20 +38,20 @@ Batt.SOC_OCV_LUT = [
 
 % RC circuit parameters
 Batt.ModelID = '3RC';  % Model type: 'R0', '1RC', '2RC', '3RC'
-Batt.R1 = 0.01; Batt.C1 = 100;
-Batt.R2 = 0.02; Batt.C2 = 100;
-Batt.R3 = 0.02; Batt.C3 = 100;
+Batt.R1 = 0.0015; Batt.C1 = 2400;
+Batt.R2 = 0.0030; Batt.C2 = 1500;
+Batt.R3 = 0.0080; Batt.C3 = 2000;
 ```
 
-## Run simulator
+## Run simulator (without noise)
 ```matlab
 [vbatt, ibatt, soc, ocv] = battSIM(I, t, Batt);
 ```
 
 ## Run simulator (with noise)
 ```matlab
-sigma_v = 1e-3; % voltage measurement noise standard deviation 
-sigma_i = 1e-6; % current measurement noise standard deviation 
+sigma_v = 1e-3;  % Voltage measurement noise (V)
+sigma_i = 1e-6;  % Current measurement noise (A)
 [vbatt, ibatt, soc, ocv] = battSIM(I, t, Batt, sigma_i, sigma_v);
 ```
 
