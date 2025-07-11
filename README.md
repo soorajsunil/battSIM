@@ -1,9 +1,9 @@
 # Battery Simulator - ``` battSIM ```
 
-The MATLAB function ```battSIM``` simulates the electrical behavior of a battery using an equivalent circuit model. It computes:
-- **State-of-charge estimation** using Coulomb counting.
+The MATLAB function ```battSIM``` simulates the electrical behavior of a battery using an equivalent-circuit model (ECM). It includes:
+- **State of charge estimation** using Coulomb counting.
 - **Open-circuit voltage lookup** from a given SOC-OCV table.
-- **RC transient current calculations** based on first, second, or third-order RC circuits.
+- **Flexible ECMs** based on zero, first, second, or third-order RC circuits.
 - **Noise simulation** for both battery current and voltage.
   
 ## Define load current (depending on usage)
